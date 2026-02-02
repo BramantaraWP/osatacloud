@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCloud - OSIS Unlimited Storage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fdfdfd; overflow-x: hidden; }
+        .sidebar-active { background: #eff6ff; color: #2563eb; border-right: 4px solid #2563eb; }
+        .glass-card { background: white; border: 1px solid #f1f5f9; transition: all 0.3s ease; }
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05); }
+        .hide { display: none !important; }
+        
+        #sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-open { transform: translateX(0) !important; }
+        .sidebar-closed { transform: translateX(-100%); }
+        
+        @media (min-width: 1024px) {
+            #sidebar { transform: translateX(0) !important; }
+            #sidebar-overlay { display: none !important; }
+        }
+
+        .custom-loader { border-top-color: #2563eb; animation: spinner 0.6s linear infinite; }
+        @keyframes spinner { to { transform: rotate(360deg); } }
+        
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="text-slate-700">
+
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="fixed inset-0 z-[1000] bg-slate-50 flex items-center justify-center p-6 text-center">
+        <div class="bg-white w-full max-w-md p-10 rounded-[2.5rem] shadow-xl border border-slate-100">
+            <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-blue-200">
+                <i data-lucide="cloud" class="text-white w-10 h-10"></i>
+            </div>
+            <h1 class="text-3xl font-black text-slate-900 mb-2 tracking-tight">OCloud</h1>
+            <p class="text-slate-400 mb-8 font-medium italic text-sm">Secure Unlimited Cloud for OSIS</p>
+            <div class="space-y-4 text-left">
+                <label class="block text-[10px] font-black uppercase text-slate-400 ml-2 mb-1">Username</label>
+                <input type="text" id="user-input" placeholder="admin" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-semibold">
+                <label class="block text-[10px] font-black uppercase text-slate-400 ml-2 mb-1">Password</label>
+                <input type="password" id="pass-input" placeholder="••••••••" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-semibold">
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 mt-4">Unlock OCloud</button>
+            </div>
+            <p id="login-error" class="text-red-500 text-xs mt-4 font-bold hide">Cek lagi username/pass lu, Njir!</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="main-app" class="flex min-h-screen hide">
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[45] hide"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-72 border-r border-slate-100 flex flex-col fixed h-full bg-white z-50 sidebar-closed lg:translate-x-0">
+            <div class="p-8 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 p-2 rounded-xl"><i data-lucide="cloud" class="text-white w-5 h-5"></i></div>
+                    <span class="font-bold text-xl tracking-tighter uppercase">O<span class="text-blue-600">Cloud</span></span>
+                </div>
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-400"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+
+            <nav class="mt-4 flex-1">
+                <div class="sidebar-active px-8 py-4 flex items-center gap-4 cursor-pointer font-bold text-sm uppercase tracking-wide">
+                    <i data-lucide="folder" class="w-5 h-5"></i> My Files
+                </div>
+                <div class="px-8 py-4 flex items-center gap-4 text-slate-300 hover:text-blue-600 cursor-pointer transition-all font-bold text-sm uppercase tracking-wide">
+                    <i data-lucide="clock" class="w-5 h-5"></i> Recent
+                </div>
+                <div class="px-8 py-4 flex items-center gap-4 text-slate-300 hover:text-blue-600 cursor-pointer transition-all font-bold text-sm uppercase tracking-wide">
+                    <i data-lucide="trash" class="w-5 h-5"></i> Trash
+                </div>
+            </nav>
+
+            <div class="p-8">
+                <div class="bg-blue-600 rounded-[2rem] p-6 text-white shadow-xl shadow-blue-100">
+                    <i data-lucide="infinity" class="w-6 h-6 mb-3 opacity-60"></i>
+                    <p class="font-black text-xs uppercase tracking-widest mb-1">Infinite Plan</p>
+                    <p class="text-[9px] opacity-70 leading-relaxed font-medium">Kapasitas Cloud OSIS tidak memiliki batas pengiriman file.</p>
+                </div>
+                <button onclick="handleLogout()" class="mt-8 flex items-center gap-2 text-slate-300 hover:text-red-500 font-bold text-[10px] transition-all uppercase tracking-widest px-4">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:ml-72 bg-[#fafbfc] min-h-screen">
+            <!-- Top Mobile Bar -->
+            <div class="lg:hidden flex items-center justify-between p-6 bg-white border-b border-slate-100 sticky top-0 z-40">
+                <span class="font-black text-sm tracking-tighter uppercase">O<span class="text-blue-600">Cloud</span></span>
+                <button onclick="toggleSidebar()" class="p-2 bg-slate-50 rounded-xl"><i data-lucide="menu" class="w-6 h-6"></i></button>
+            </div>
+
+            <div class="p-6 md:p-12 max-w-7xl mx-auto">
+                <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-16">
+                    <div>
+                        <h2 class="text-4xl font-black text-slate-900 tracking-tight">OCloud Drive</h2>
+                        <p class="text-slate-400 font-medium text-sm mt-2">Penyimpanan tanpa batas untuk pengurus OSIS.</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <input type="file" id="file-input" class="hidden" onchange="startSmartUpload(event)">
+                        <button onclick="document.getElementById('file-input').click()" class="flex-1 md:flex-none bg-blue-600 text-white px-8 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 hover:scale-105 transition-all">
+                            <i data-lucide="upload-cloud" class="w-5 h-5"></i> Upload File
+                        </button>
+                    </div>
+                </header>
+
+                <div class="mb-12 relative">
+                    <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300"></i>
+                    <input type="text" oninput="handleSearch(this.value)" placeholder="Cari dokumen, media, atau arsip..." class="w-full pl-16 pr-8 py-5 bg-white border border-slate-100 rounded-3xl focus:ring-4 focus:ring-blue-50 outline-none shadow-sm font-medium transition-all">
+                </div>
+
+                <div id="file-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
+                    <!-- Cards via JS -->
+                </div>
+                
+                <div id="empty-state" class="hide flex flex-col items-center justify-center py-40 text-slate-200">
+                    <i data-lucide="layers" class="w-20 h-20 mb-6"></i>
+                    <p class="font-black uppercase tracking-widest text-[10px]">Cloud Explorer is Empty</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- PREVIEW & MANAGE MODAL -->
+    <div id="preview-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xl z-[200] hide flex items-center justify-center p-4" style="display:none">
+        <div class="bg-white w-full max-w-xl rounded-[3rem] p-10 relative shadow-2xl animate-slide-up">
+            <button onclick="closePreview()" class="absolute right-8 top-8 p-2 hover:bg-slate-50 rounded-full transition-all text-slate-300 hover:text-slate-600">
+                <i data-lucide="x" class="w-7 h-7"></i>
+            </button>
+
+            <div class="flex items-center gap-6 mb-10">
+                <div id="modal-icon-container" class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 shadow-inner">
+                    <i data-lucide="file" id="modal-icon" class="w-10 h-10"></i>
+                </div>
+                <div class="overflow-hidden">
+                    <h3 id="modal-name" class="text-2xl font-black text-slate-900 truncate leading-tight">Nama File.zip</h3>
+                    <p id="modal-info" class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2 flex items-center gap-2">
+                        <span id="modal-parts-count">-- PARTS</span> • <span id="modal-date">--</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-[2rem] p-8 mb-10 text-center border border-slate-100">
+                <i data-lucide="box" class="w-12 h-12 text-slate-200 mx-auto mb-4"></i>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest leading-loose">File siap diolah. Chunks terdeteksi di server Telegram.</p>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button id="btn-merge-download" class="w-full bg-blue-600 text-white py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-50">
+                    <i data-lucide="download-cloud" class="w-6 h-6"></i> Download File
+                </button>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="btn-delete-file" class="bg-red-50 text-red-600 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-red-100 transition-all">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i> Delete
+                    </button>
+                    <button id="btn-share" class="bg-slate-50 text-slate-500 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-slate-100 transition-all">
+                        <i data-lucide="share" class="w-5 h-5"></i> Share
+                    </button>
+                </div>
+            </div>
+            
+            <div id="decode-status-bar" class="mt-8 pt-6 border-t border-slate-100 hide">
+                <div class="flex justify-between items-center mb-3">
+                    <p id="decode-text" class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Processing Data...</p>
+                    <p id="decode-percent" class="text-[10px] font-black text-slate-400">0%</p>
+                </div>
+                <div class="h-2 bg-slate-50 rounded-full overflow-hidden">
+                    <div id="decode-progress" class="h-full bg-blue-600 w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed bottom-10 right-10 left-10 md:left-auto bg-slate-900 text-white p-5 rounded-2xl shadow-2xl z-[1000] hide flex items-center gap-4 animate-slide-up md:w-80">
+        <i data-lucide="check-circle" class="text-green-400 w-6 h-6"></i>
+        <p id="toast-msg" class="text-sm font-bold">Action Success</p>
+    </div>
+
+    <!-- UPLOAD TRACKER -->
+    <div id="upload-status" class="fixed bottom-10 right-10 left-10 md:left-auto bg-white p-8 rounded-[2.5rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 z-[300] md:w-96 hide">
+        <div class="flex items-center gap-5 mb-6">
+            <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white">
+                <i data-lucide="cpu" class="w-8 h-8 animate-spin"></i>
+            </div>
+            <div class="overflow-hidden">
+                <p class="font-bold text-slate-900 truncate" id="up-name">filename.zip</p>
+                <p class="text-[10px] text-blue-600 font-black uppercase tracking-widest mt-1" id="up-part">Part 1/--</p>
+            </div>
+        </div>
+        <div class="h-2 bg-slate-50 rounded-full overflow-hidden">
+            <div id="up-progress" class="h-full bg-blue-600 w-0 transition-all duration-300"></div>
+        </div>
+    </div>
+
+    <script>
+        const BOT = {
+            TOKEN: '8401425763:AAGzfWOOETNcocI7JCj9zQxBhZZ2fVaworI',
+            CHAT: '-1003862398542',
+            WEB: 'https://api.codetabs.com/v1/proxy/?quest=https://t.me/s/B4C4528FDACF130CF0299F43D4AD83D0',
+            CHUNK: 19 * 1024 * 1024
+        };
+
+        let db = {};
+        let filteredKeys = [];
+
+        // --- AUTH & UI ---
+        const handleLogin = () => {
+            if(document.getElementById('user-input').value==='admin' && document.getElementById('pass-input').value==='osis26pkt') {
+                sessionStorage.setItem('ocloud_auth', '1');
+                document.getElementById('login-page').classList.add('hide');
+                document.getElementById('main-app').classList.remove('hide');
+                sync();
+            } else document.getElementById('login-error').classList.remove('hide');
+        };
+
+        const handleLogout = () => { sessionStorage.clear(); location.reload(); };
+        const toggleSidebar = () => {
+            const sb = document.getElementById('sidebar');
+            const ol = document.getElementById('sidebar-overlay');
+            sb.classList.toggle('sidebar-open');
+            ol.classList.toggle('hide');
+        };
+
+        const showToast = (m) => {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = m;
+            t.classList.remove('hide');
+            setTimeout(() => t.classList.add('hide'), 3000);
+        };
+
+        // --- CORE FUNCTIONS ---
+        async function sync() {
+            try {
+                const res = await fetch(BOT.WEB);
+                const html = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const messages = doc.querySelectorAll('.tgme_widget_message');
+
+                db = {};
+                messages.forEach(msg => {
+                    const textEl = msg.querySelector('.tgme_widget_message_text');
+                    const postData = msg.getAttribute('data-post');
+                    if (!textEl || !postData) return;
+
+                    const match = textEl.innerText.match(/date:(.*?)::part:(\d+)::name:(.*?)::fid:(.*)/i);
+                    if (match) {
+                        const [_, date, part, name, fid] = match;
+                        const msgId = postData.split('/').pop();
+                        const n = name.trim();
+                        if (!db[n]) db[n] = { name: n, date: date.trim(), parts: [] };
+                        db[n].parts.push({ part: parseInt(part), fid: fid.trim(), msgId: msgId });
+                    }
+                });
+                filteredKeys = Object.keys(db);
+                render();
+            } catch (e) { console.error(e); }
+        }
+
+        function render() {
+            const grid = document.getElementById('file-grid');
+            const empty = document.getElementById('empty-state');
+            grid.innerHTML = '';
+            
+            if (filteredKeys.length === 0) { empty.classList.remove('hide'); return; }
+            empty.classList.add('hide');
+
+            filteredKeys.sort((a,b) => b.localeCompare(a)).forEach(name => {
+                const f = db[name];
+                const ext = name.split('.').pop().toLowerCase();
+                let icon = 'file';
+                if (['jpg','png','jpeg'].includes(ext)) icon = 'image';
+                if (['mp4','mov'].includes(ext)) icon = 'video';
+                if (['zip','rar'].includes(ext)) icon = 'archive';
+
+                grid.innerHTML += `
+                    <div onclick="showPreview('${name.replace(/'/g, "\\'")}')" class="glass-card p-8 rounded-[2.5rem] cursor-pointer group animate-slide-up">
+                        <div class="flex justify-between items-start mb-8">
+                            <div class="bg-blue-600 text-white p-4 rounded-3xl shadow-lg shadow-blue-100 group-hover:scale-110 transition-all">
+                                <i data-lucide="${icon}" class="w-6 h-6"></i>
+                            </div>
+                            <span class="text-[10px] font-black text-slate-300 uppercase">${f.parts.length} Parts</span>
+                        </div>
+                        <h4 class="font-bold text-slate-900 truncate mb-1 text-sm">${name}</h4>
+                        <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">${f.date}</p>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function handleSearch(v) {
+            filteredKeys = Object.keys(db).filter(k => k.toLowerCase().includes(v.toLowerCase()));
+            render();
+        }
+
+        // --- MANAGE ---
+        function showPreview(name) {
+            const f = db[name];
+            document.getElementById('modal-name').innerText = name;
+            document.getElementById('modal-date').innerText = f.date;
+            document.getElementById('modal-parts-count').innerText = `${f.parts.length} PARTS`;
+            
+            const modal = document.getElementById('preview-modal');
+            modal.style.display = 'flex';
+            modal.classList.remove('hide');
+            
+            document.getElementById('btn-merge-download').onclick = () => downloadFile(name);
+            document.getElementById('btn-delete-file').onclick = () => deleteFile(name);
+            document.getElementById('btn-share').onclick = () => {
+                 navigator.clipboard.writeText(`OCloud://${btoa(name)}`).then(() => showToast("Share link copied!"));
+            };
+            lucide.createIcons();
+        }
+
+        // --- NEW DELETE FEATURE ---
+        async function deleteFile(name) {
+            if(!confirm(`Beneran mau hapus "${name}" dari Cloud OSIS? Tindakan ini permanen, Njir!`)) return;
+            
+            const f = db[name];
+            const btn = document.getElementById('btn-delete-file');
+            btn.innerHTML = `<i class="w-4 h-4 animate-spin border-2 border-white border-t-transparent rounded-full"></i> Hapus...`;
+            btn.disabled = true;
+
+            try {
+                // Telegram API deleteMessage cuma bisa hapus 1 per 1. 
+                // Kita hapus semua metadata yang terindex.
+                for(const p of f.parts) {
+                    await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/deleteMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: BOT.CHAT, message_id: p.msgId })
+                    });
+                }
+                showToast("File berhasil dihapus dari Cloud!");
+                closePreview();
+                sync();
+            } catch (err) {
+                alert("Gagal hapus: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="trash-2" class="w-5 h-5"></i> Delete`;
+                lucide.createIcons();
+            }
+        }
+
+        async function downloadFile(name) {
+            const f = db[name];
+            const bar = document.getElementById('decode-status-bar');
+            const progress = document.getElementById('decode-progress');
+            const pTxt = document.getElementById('decode-percent');
+            const sTxt = document.getElementById('decode-text');
+
+            bar.classList.remove('hide');
+            f.parts.sort((a,b) => a.part - b.part);
+
+            try {
+                const chunks = [];
+                for(let i=0; i<f.parts.length; i++) {
+                    const p = f.parts[i];
+                    sTxt.innerText = `Fetching Part ${p.part}/${f.parts.length}...`;
+                    const resApi = await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/getFile?file_id=${p.fid}`);
+                    const dataApi = await resApi.json();
+                    const blobRes = await fetch(`https://api.telegram.org/file/bot${BOT.TOKEN}/${dataApi.result.file_path}`);
+                    chunks.push(await blobRes.arrayBuffer());
+                    const pc = Math.round(((i+1)/f.parts.length)*100);
+                    progress.style.width = pc+'%';
+                    pTxt.innerText = pc+'%';
+                }
+                sTxt.innerText = "Finalizing File...";
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob(chunks));
+                a.download = name;
+                a.click();
+                setTimeout(() => bar.classList.add('hide'), 2000);
+            } catch (e) { alert("Download failed!"); bar.classList.add('hide'); }
+        }
+
+        async function startSmartUpload(e) {
+            const f = e.target.files[0]; if(!f) return;
+            const l = document.getElementById('upload-status');
+            const upP = document.getElementById('up-part'), upB = document.getElementById('up-progress'), upN = document.getElementById('up-name');
+            l.classList.remove('hide'); upN.innerText = f.name;
+            const total = Math.ceil(f.size/BOT.CHUNK), d = new Date().toLocaleDateString('id-ID');
+            try {
+                for(let i=0; i<total; i++) {
+                    const c = f.slice(i*BOT.CHUNK, (i+1)*BOT.CHUNK);
+                    const pN = i+1;
+                    upP.innerText = `Sending Part ${pN}/${total}`;
+                    upB.style.width = (pN/total*100)+'%';
+                    const fd = new FormData();
+                    fd.append('chat_id', BOT.CHAT); fd.append('document', c, f.name);
+                    const res = await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/sendDocument`, {method:'POST', body:fd});
+                    const data = await res.json();
+                    if(data.ok) {
+                        const meta = `date:${d}::part:${pN}::name:${f.name}::fid:${data.result.document.file_id}`;
+                        await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/sendMessage`, {
+                            method:'POST', headers:{'Content-Type':'application/json'},
+                            body: JSON.stringify({chat_id: BOT.CHAT, text: meta})
+                        });
+                    }
+                }
+                showToast("OCloud upload complete!");
+            } catch (e) { alert("Upload error!"); }
+            l.classList.add('hide'); sync();
+        }
+
+        function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
+
+        window.onload = () => {
+            if(sessionStorage.getItem('ocloud_auth')) {
+                document.getElementById('login-page').classList.add('hide');
+                document.getElementById('main-app').classList.remove('hide');
+                sync();
+            }
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
+
