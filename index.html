@@ -13,16 +13,10 @@
         .glass-card { background: white; border: 1px solid #f1f5f9; transition: all 0.3s ease; }
         .glass-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05); }
         .hide { display: none !important; }
-        
         #sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .sidebar-open { transform: translateX(0) !important; }
         .sidebar-closed { transform: translateX(-100%); }
-        
-        @media (min-width: 1024px) {
-            #sidebar { transform: translateX(0) !important; }
-            #sidebar-overlay { display: none !important; }
-        }
-
+        @media (min-width: 1024px) { #sidebar { transform: translateX(0) !important; } #sidebar-overlay { display: none !important; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
     </style>
@@ -60,13 +54,11 @@
                 </div>
                 <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-400"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-
             <nav class="mt-4 flex-1">
                 <div class="sidebar-active px-8 py-4 flex items-center gap-4 cursor-pointer font-bold text-sm uppercase tracking-wide">
                     <i data-lucide="folder" class="w-5 h-5"></i> My Files
                 </div>
             </nav>
-
             <div class="p-8">
                 <div class="bg-blue-600 rounded-[2rem] p-6 text-white shadow-xl shadow-blue-100">
                     <i data-lucide="infinity" class="w-6 h-6 mb-3 opacity-60"></i>
@@ -91,7 +83,6 @@
                         <h2 class="text-4xl font-black text-slate-900 tracking-tight">OCloud Drive</h2>
                         <p class="text-slate-400 font-medium text-sm mt-2">Penyimpanan tanpa batas untuk pengurus OSIS.</p>
                     </div>
-                    
                     <div class="flex items-center gap-4 w-full md:w-auto">
                         <input type="file" id="file-input" class="hidden" onchange="startSmartUpload(event)">
                         <button onclick="document.getElementById('file-input').click()" class="flex-1 md:flex-none bg-blue-600 text-white px-8 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all">
@@ -121,11 +112,11 @@
                 <i data-lucide="x" class="w-7 h-7"></i>
             </button>
 
-            <div class="flex items-center gap-6 mb-10">
+            <div class="flex items-center gap-6 mb-10 text-left">
                 <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 shadow-inner">
                     <i data-lucide="file" id="modal-icon" class="w-10 h-10"></i>
                 </div>
-                <div class="overflow-hidden text-left">
+                <div class="overflow-hidden">
                     <h3 id="modal-name" class="text-2xl font-black text-slate-900 truncate leading-tight">Nama File</h3>
                     <p id="modal-info" class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2 flex items-center gap-2">
                         <span id="modal-parts-count">-- PARTS</span> • <span id="modal-date">--</span>
@@ -134,31 +125,21 @@
             </div>
 
             <div class="bg-slate-50 rounded-[2rem] p-8 mb-10 text-center border border-slate-100">
-                <i data-lucide="box" class="w-12 h-12 text-slate-200 mx-auto mb-4"></i>
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-loose">File tersimpan aman dalam beberapa part di server Telegram.</p>
+                <i data-lucide="zap" class="w-12 h-12 text-blue-500 mx-auto mb-4"></i>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest leading-loose">Direct Speed: File diunduh langsung dari server Telegram.</p>
             </div>
 
             <div class="flex flex-col gap-3">
-                <button id="btn-merge-download" class="w-full bg-blue-600 text-white py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-50">
-                    <i data-lucide="download-cloud" class="w-6 h-6"></i> Download & Merge
+                <button id="btn-direct-download" class="w-full bg-blue-600 text-white py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-50">
+                    <i data-lucide="download" class="w-6 h-6"></i> Download Langsung
                 </button>
                 <div class="grid grid-cols-2 gap-3">
                     <button id="btn-share-file" class="bg-blue-50 text-blue-600 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-blue-100 transition-all">
-                        <i data-lucide="share-2" class="w-5 h-5"></i> Share Link
+                        <i data-lucide="share-2" class="w-5 h-5"></i> Salin Link
                     </button>
                     <button id="btn-delete-file" class="bg-red-50 text-red-600 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-red-100 transition-all">
                         <i data-lucide="trash-2" class="w-5 h-5"></i> Hapus
                     </button>
-                </div>
-            </div>
-            
-            <div id="decode-status-bar" class="mt-8 pt-6 border-t border-slate-100 hide">
-                <div class="flex justify-between items-center mb-3">
-                    <p id="decode-text" class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Processing Data...</p>
-                    <p id="decode-percent" class="text-[10px] font-black text-slate-400">0%</p>
-                </div>
-                <div class="h-2 bg-slate-50 rounded-full overflow-hidden">
-                    <div id="decode-progress" class="h-full bg-blue-600 w-0 transition-all duration-300"></div>
                 </div>
             </div>
         </div>
@@ -228,13 +209,11 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const messages = doc.querySelectorAll('.tgme_widget_message');
-
                 db = {};
                 messages.forEach(msg => {
                     const textEl = msg.querySelector('.tgme_widget_message_text');
                     const postData = msg.getAttribute('data-post');
                     if (!textEl || !postData) return;
-
                     const match = textEl.innerText.match(/date:(.*?)::part:(\d+)::name:(.*?)::fid:(.*)/i);
                     if (match) {
                         const [_, date, part, name, fid] = match;
@@ -253,10 +232,8 @@
             const grid = document.getElementById('file-grid');
             const empty = document.getElementById('empty-state');
             grid.innerHTML = '';
-            
             if (filteredKeys.length === 0) { empty.classList.remove('hide'); return; }
             empty.classList.add('hide');
-
             filteredKeys.sort((a,b) => b.localeCompare(a)).forEach(name => {
                 const f = db[name];
                 const ext = name.split('.').pop().toLowerCase();
@@ -264,7 +241,6 @@
                 if (['jpg','png','jpeg'].includes(ext)) icon = 'image';
                 if (['mp4','mov'].includes(ext)) icon = 'video';
                 if (['zip','rar'].includes(ext)) icon = 'archive';
-
                 grid.innerHTML += `
                     <div onclick="showPreview('${name.replace(/'/g, "\\'")}')" class="glass-card p-8 rounded-[2.5rem] cursor-pointer group animate-slide-up">
                         <div class="flex justify-between items-start mb-8 text-left">
@@ -292,43 +268,42 @@
             document.getElementById('modal-name').innerText = name;
             document.getElementById('modal-date').innerText = f.date;
             document.getElementById('modal-parts-count').innerText = `${f.parts.length} PARTS`;
-            
             const modal = document.getElementById('preview-modal');
             modal.style.display = 'flex';
             modal.classList.remove('hide');
-            
-            document.getElementById('btn-merge-download').onclick = () => downloadFile(name);
+            document.getElementById('btn-direct-download').onclick = () => getDirectLink(name, true);
+            document.getElementById('btn-share-file').onclick = () => getDirectLink(name, false);
             document.getElementById('btn-delete-file').onclick = () => deleteFile(name);
-            document.getElementById('btn-share-file').onclick = () => shareDirectLink(name);
             lucide.createIcons();
         }
 
-        // --- NEW SHARE LOGIC (DIRECT API LINK) ---
-        async function shareDirectLink(name) {
+        // --- UNIFIED DIRECT LINK LOGIC ---
+        async function getDirectLink(name, isDownload) {
             const f = db[name];
-            const btn = document.getElementById('btn-share-file');
+            const btn = isDownload ? document.getElementById('btn-direct-download') : document.getElementById('btn-share-file');
             const originalHTML = btn.innerHTML;
-            
-            btn.innerHTML = `<i class="w-4 h-4 animate-spin border-2 border-blue-600 border-t-transparent rounded-full"></i> Link...`;
+            btn.innerHTML = `<i class="w-4 h-4 animate-spin border-2 ${isDownload ? 'border-white' : 'border-blue-600'} border-t-transparent rounded-full"></i> Processing...`;
             
             try {
-                // Ambil link part pertama sebagai perwakilan
                 const firstPart = f.parts.sort((a,b) => a.part - b.part)[0];
                 const res = await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/getFile?file_id=${firstPart.fid}`);
                 const data = await res.json();
-                
                 if(data.ok) {
                     const directUrl = `https://api.telegram.org/file/bot${BOT.TOKEN}/${data.result.file_path}`;
-                    await navigator.clipboard.writeText(directUrl);
-                    showToast("Direct Telegram Link Copied!");
-                } else {
-                    throw new Error("Failed to get file path");
-                }
-            } catch (err) {
-                alert("Gagal ambil link: " + err.message);
-            } finally {
-                btn.innerHTML = originalHTML;
-            }
+                    if(isDownload) {
+                        const a = document.createElement('a');
+                        a.href = directUrl;
+                        a.download = name; // Walaupun telegram biasanya override nama, ini bantu browser
+                        a.target = "_blank";
+                        a.click();
+                        showToast("Download Dimulai!");
+                    } else {
+                        await navigator.clipboard.writeText(directUrl);
+                        showToast("Link Salin ke Clipboard!");
+                    }
+                } else throw new Error("File tidak ditemukan");
+            } catch (err) { alert("Error: " + err.message); }
+            finally { btn.innerHTML = originalHTML; lucide.createIcons(); }
         }
 
         async function deleteFile(name) {
@@ -337,7 +312,6 @@
             const btn = document.getElementById('btn-delete-file');
             btn.innerHTML = `Hapus...`;
             btn.disabled = true;
-
             try {
                 for(const p of f.parts) {
                     await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/deleteMessage`, {
@@ -351,39 +325,6 @@
                 sync();
             } catch (err) { alert(err.message); }
             finally { btn.disabled = false; btn.innerHTML = `<i data-lucide="trash-2" class="w-5 h-5"></i> Hapus`; lucide.createIcons(); }
-        }
-
-        async function downloadFile(name) {
-            const f = db[name];
-            const bar = document.getElementById('decode-status-bar');
-            const progress = document.getElementById('decode-progress');
-            const pTxt = document.getElementById('decode-percent');
-            const sTxt = document.getElementById('decode-text');
-
-            bar.classList.remove('hide');
-            f.parts.sort((a,b) => a.part - b.part);
-
-            try {
-                const chunks = [];
-                for(let i=0; i<f.parts.length; i++) {
-                    const p = f.parts[i];
-                    sTxt.innerText = `Fetching Part ${p.part}/${f.parts.length}...`;
-                    const resApi = await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/getFile?file_id=${p.fid}`);
-                    const dataApi = await resApi.json();
-                    const blobRes = await fetch(`https://api.telegram.org/file/bot${BOT.TOKEN}/${dataApi.result.file_path}`);
-                    chunks.push(await blobRes.arrayBuffer());
-                    const pc = Math.round(((i+1)/f.parts.length)*100);
-                    progress.style.width = pc+'%';
-                    pTxt.innerText = pc+'%';
-                }
-                sTxt.innerText = "Merging Chunks...";
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob(chunks));
-                a.download = name;
-                a.click();
-                showToast("Download Started!");
-                setTimeout(() => bar.classList.add('hide'), 2000);
-            } catch (e) { alert("Download failed!"); bar.classList.add('hide'); }
         }
 
         async function startSmartUpload(e) {
@@ -410,13 +351,12 @@
                         });
                     }
                 }
-                showToast("Upload OCloud Berhasil!");
+                showToast("Upload Selesai!");
             } catch (e) { alert("Upload error!"); }
             l.classList.add('hide'); sync();
         }
 
         function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
-
         window.onload = () => {
             if(sessionStorage.getItem('ocloud_auth')) {
                 document.getElementById('login-page').classList.add('hide');
