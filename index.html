@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCloud</title>
+    <title>OCloud - v2.0Turbo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
@@ -29,7 +29,6 @@
 
         .hide { display: none !important; }
 
-        /* UI Cards */
         .file-list-container {
             display: flex;
             flex-direction: column;
@@ -70,7 +69,6 @@
 
         .ocloud-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Luxury Popup / Modal */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -121,13 +119,11 @@
 </head>
 <body>
 
-    <!-- SPLASH -->
     <div id="splash" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center">
         <div class="w-10 h-10 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin mb-4"></div>
         <h2 class="text-xl font-black italic tracking-tighter uppercase">O<span class="text-blue-600">CLOUD</span></h2>
     </div>
 
-    <!-- LOGIN PAGE -->
     <div id="login-page" class="fixed inset-0 bg-white z-[4000] flex items-center justify-center p-6 hide">
         <div class="w-full max-w-sm">
             <div class="text-center mb-10">
@@ -142,7 +138,6 @@
         </div>
     </div>
 
-    <!-- MAIN APP -->
     <div id="main-app" class="hide">
         <header class="sticky top-0 bg-white/80 backdrop-blur-xl z-[100] border-b border-slate-100 px-6 py-4">
             <div class="max-w-4xl mx-auto flex justify-between items-center">
@@ -180,7 +175,6 @@
         </div>
     </div>
 
-    <!-- POPUP MODAL -->
     <div id="modal" class="modal-overlay" onclick="if(event.target === this) closeModal()">
         <div class="modal-content">
             <div class="p-6 border-b border-slate-50 flex items-center justify-between bg-white">
@@ -189,7 +183,6 @@
                         <i id="modal-icon" data-lucide="file"></i>
                     </div>
                     <div class="min-w-0">
-                        <!-- Judul modal tidak di-truncate 12 char agar user bisa baca nama aslinya -->
                         <h3 id="modal-title" class="font-bold text-slate-900 truncate max-w-[200px] md:max-w-md">Nama Berkas</h3>
                         <p id="modal-meta" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Info Berkas</p>
                     </div>
@@ -220,7 +213,6 @@
         </div>
     </div>
 
-    <!-- UPLOAD NOTIF -->
     <div id="upload-overlay" class="hide fixed inset-0 bg-slate-900/90 z-[7000] flex items-center justify-center p-8">
         <div class="bg-white w-full max-w-sm p-8 rounded-[32px] text-center">
             <h3 class="font-black text-xl mb-1">Mengunggah...</h3>
@@ -235,18 +227,36 @@
     <script id="worker-code" type="application/javascript">
         self.onmessage = async (e) => {
             const { name, parts, token, proxy } = e.data;
-            let chunks = [];
-            try {
-                for (let i = 0; i < parts.length; i++) {
-                    const infoRes = await fetch(`${proxy}https://api.telegram.org/bot${token}/getFile?file_id=${parts[i].fid}`);
+            const chunks = new Array(parts.length);
+            let completed = 0;
+            
+           
+            const CONCURRENCY_LIMIT = 25; 
+            
+            const downloadPart = async (index) => {
+                try {
+                    const infoRes = await fetch(`${proxy}https://api.telegram.org/bot${token}/getFile?file_id=${parts[index].fid}`);
                     const info = await infoRes.json();
                     const fileRes = await fetch(`${proxy}https://api.telegram.org/file/bot${token}/${info.result.file_path}`);
-                    chunks.push(await fileRes.arrayBuffer());
-                    self.postMessage({ type: 'PROGRESS', name, pct: Math.round(((i+1)/parts.length)*100) });
+                    chunks[index] = await fileRes.arrayBuffer();
+                    completed++;
+                    self.postMessage({ type: 'PROGRESS', name, pct: Math.round((completed / parts.length) * 100) });
+                } catch(err) {
+                    console.error("Part download failed:", err);
                 }
-                const blob = new Blob(chunks);
-                self.postMessage({ type: 'DONE', name, blob });
-            } catch(err) { self.postMessage({ type: 'ERROR', name }); }
+            };
+
+            // Jalankan batch paralel level tinggi per file
+            for (let i = 0; i < parts.length; i += CONCURRENCY_LIMIT) {
+                const batch = [];
+                for (let j = 0; j < CONCURRENCY_LIMIT && (i + j) < parts.length; j++) {
+                    batch.push(downloadPart(i + j));
+                }
+                await Promise.all(batch);
+            }
+
+            const blob = new Blob(chunks);
+            self.postMessage({ type: 'DONE', name, blob });
         };
     </script>
 
@@ -260,9 +270,10 @@
 
         let files = {};
         let worker;
+        let downloadQueue = [];
+        let isDownloading = false;
 
-        
-        function truncateName(name, limit = 12) {
+        function truncateName(name, limit = 25) {
             if (name.length <= limit) return name;
             return name.substring(0, limit) + "...";
         }
@@ -287,6 +298,10 @@
                     document.getElementById(`badge-ready-${sid}`)?.classList.remove('hide');
                     document.getElementById(`track-${sid}`)?.classList.add('hide');
                     if(document.getElementById('modal-title').innerText === name) showContent(name);
+                    
+                    // LANJUT KE FILE BERIKUTNYA DALAM ANTREAN
+                    isDownloading = false;
+                    processQueue();
                 }
             };
         }
@@ -316,9 +331,27 @@
         }
 
         function autoStartWorkers() {
-            document.getElementById('engine-status').innerText = "Sistem: Auto-Sync Aktif";
-            Object.keys(files).forEach(name => {
-                worker.postMessage({ name, parts: files[name].parts, token: CONFIG.TOKEN, proxy: CONFIG.PROXY });
+            document.getElementById('engine-status').innerText = "Next Generation Clouds";
+            downloadQueue = Object.keys(files);
+            processQueue();
+        }
+
+        function processQueue() {
+            if (isDownloading || downloadQueue.length === 0) return;
+            
+            const nextName = downloadQueue.shift();
+            if (files[nextName].isReady) {
+                processQueue();
+                return;
+            }
+
+            isDownloading = true;
+            files[nextName].parts.sort((a, b) => a.p - b.p);
+            worker.postMessage({ 
+                name: nextName, 
+                parts: files[nextName].parts, 
+                token: CONFIG.TOKEN, 
+                proxy: CONFIG.PROXY 
             });
         }
 
@@ -340,8 +373,6 @@
                 const f = files[name];
                 const sid = btoa(name).replace(/[^a-z]/gi, '').slice(0, 8);
                 const isMedia = f.type === 'IMAGE' || f.type === 'VIDEO';
-                
-                // Disini kita pake truncateName buat tampilan <h4>
                 const displayTitle = truncateName(name, 20);
 
                 html += `
@@ -371,7 +402,6 @@
             lucide.createIcons();
         }
 
-        // ... Sisa fungsi (loadThumb, handleUpload, openModal, dll) tetap sama agar stabil ...
         async function loadThumb(name, sid) {
             const f = files[name];
             const p1 = f.parts.sort((a,b)=>a.p-b.p)[0];
