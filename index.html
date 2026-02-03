@@ -3,204 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCloud - OsataCloud</title>
+    <title>OCloud - v2Turbo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fdfdfd; overflow-x: hidden; }
-        .sidebar-active { background: #eff6ff; color: #2563eb; border-right: 4px solid #2563eb; }
-        .glass-card { background: white; border: 1px solid #f1f5f9; transition: all 0.3s ease; }
-        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05); }
+        :root { --primary: #2563eb; --bg: #f8fafc; --card-bg: #ffffff; --radius: 24px; --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #0f172a; margin: 0; overflow-x: hidden; }
         .hide { display: none !important; }
-        #sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-open { transform: translateX(0) !important; }
-        .sidebar-closed { transform: translateX(-100%); }
-        @media (min-width: 1024px) { #sidebar { transform: translateX(0) !important; } #sidebar-overlay { display: none !important; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+        .glass-card { background: var(--card-bg); border: 1px solid #f1f5f9; transition: var(--transition); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); }
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); border-color: var(--primary); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: white; width: 100%; max-width: 600px; border-radius: 32px; overflow: hidden; display: flex; flex-direction: column; animation: modalScale 0.3s ease-out; max-height: 90vh; }
+        @keyframes modalScale { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        #fab-upload { position: fixed; bottom: 30px; right: 30px; width: 64px; height: 64px; background: var(--primary); color: white; border-radius: 22px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); cursor: pointer; transition: var(--transition); z-index: 1000; }
+        #fab-upload:hover { transform: rotate(90deg) scale(1.1); }
+        .progress-bar-container { height: 8px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s ease; }
+        .preview-area { width: 100%; background: #000; border-radius: 20px; overflow: hidden; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; min-height: 200px; }
+        .preview-area img, .preview-area video { max-width: 100%; max-height: 400px; object-fit: contain; }
     </style>
 </head>
-<body class="text-slate-700">
+<body>
 
-    <!-- LOGIN PAGE -->
-    <div id="login-page" class="fixed inset-0 z-[1000] bg-slate-50 flex items-center justify-center p-6 text-center">
-        <div class="bg-white w-full max-w-md p-10 rounded-[2.5rem] shadow-xl border border-slate-100">
-            <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-blue-200">
-                <i data-lucide="cloud" class="text-white w-10 h-10"></i>
+    <!-- Splash Screen -->
+    <div id="splash" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <h2 class="text-2xl font-black italic tracking-tighter uppercase">O<span class="text-blue-600">CLOUD</span></h2>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="fixed inset-0 bg-white z-[4000] flex items-center justify-center p-6">
+        <div class="w-full max-w-sm text-center">
+            <div class="mb-10 text-center">
+                <h1 class="text-5xl font-black italic uppercase tracking-tighter">O<span class="text-blue-600">Cloud</span></h1>
+                <p class="text-slate-400 font-bold text-[10px] tracking-[0.4em] uppercase mt-2">Turbo Ultimate Edition</p>
             </div>
-            <h1 class="text-3xl font-black text-slate-900 mb-2 tracking-tight">OCloud</h1>
-            <p class="text-slate-400 mb-8 font-medium italic text-sm">Secure Unlimited Cloud</p>
-            <div class="space-y-4 text-left">
-                <label class="block text-[10px] font-black uppercase text-slate-400 ml-2 mb-1">Username</label>
-                <input type="text" id="user-input" placeholder="admin" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-semibold">
-                <label class="block text-[10px] font-black uppercase text-slate-400 ml-2 mb-1">Password</label>
-                <input type="password" id="pass-input" placeholder="••••••••" class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-semibold">
-                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 mt-4">Unlock OCloud</button>
+            <div class="space-y-4">
+                <input type="text" id="user-input" placeholder="Username" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-3xl outline-none focus:border-blue-500 transition-all font-semibold">
+                <input type="password" id="pass-input" placeholder="Password" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-3xl outline-none focus:border-blue-500 transition-all font-semibold">
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-5 rounded-3xl font-black uppercase tracking-widest hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-200">Login Bro!</button>
+                <p id="login-error" class="text-red-500 text-xs font-bold hide">Salah!.</p>
             </div>
-            <p id="login-error" class="text-red-500 text-xs mt-4 font-bold hide">Cek lagi username/pass lu, Njir!</p>
         </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="main-app" class="flex min-h-screen hide">
-        <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[45] hide"></div>
-
-        <aside id="sidebar" class="w-72 border-r border-slate-100 flex flex-col fixed h-full bg-white z-50 sidebar-closed lg:translate-x-0">
-            <div class="p-8 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="bg-blue-600 p-2 rounded-xl"><i data-lucide="cloud" class="text-white w-5 h-5"></i></div>
-                    <span class="font-bold text-xl tracking-tighter uppercase">O<span class="text-blue-600">Cloud</span></span>
+    <!-- Main App -->
+    <div id="main-app" class="hide">
+        <header class="sticky top-0 bg-white/80 backdrop-blur-xl z-[100] border-b border-slate-100 px-6 py-5">
+            <div class="max-w-5xl mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-black italic uppercase leading-none">O<span class="text-blue-600">Cloud</span></h1>
+                <div class="flex items-center gap-4">
+                    <span id="sync-indicator" class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <button onclick="handleLogout()" class="p-2 text-slate-300 hover:text-red-500 transition-colors"><i data-lucide="power"></i></button>
                 </div>
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-slate-400"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-            <nav class="mt-4 flex-1">
-                <div class="sidebar-active px-8 py-4 flex items-center gap-4 cursor-pointer font-bold text-sm uppercase tracking-wide">
-                    <i data-lucide="folder" class="w-5 h-5"></i> My Files
-                </div>
-            </nav>
-            <div class="p-8">
-                <div class="bg-blue-600 rounded-[2rem] p-6 text-white shadow-xl shadow-blue-100">
-                    <i data-lucide="infinity" class="w-6 h-6 mb-3 opacity-60"></i>
-                    <p class="font-black text-xs uppercase tracking-widest mb-1">Infinite Plan</p>
-                    <p class="text-[9px] opacity-70 leading-relaxed font-medium">Kapasitas Cloud tidak memiliki batas  disk.</p>
-                </div>
-                <button onclick="handleLogout()" class="mt-8 flex items-center gap-2 text-slate-300 hover:text-red-500 font-bold text-[10px] transition-all uppercase tracking-widest px-4">
-                    <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-                </button>
-            </div>
-        </aside>
+        </header>
 
-        <main class="flex-1 lg:ml-72 bg-[#fafbfc] min-h-screen">
-            <div class="lg:hidden flex items-center justify-between p-6 bg-white border-b border-slate-100 sticky top-0 z-40">
-                <span class="font-black text-sm tracking-tighter uppercase">O<span class="text-blue-600">Cloud</span></span>
-                <button onclick="toggleSidebar()" class="p-2 bg-slate-50 rounded-xl"><i data-lucide="menu" class="w-6 h-6"></i></button>
+        <main class="max-w-5xl mx-auto p-6">
+            <div class="relative mb-12">
+                <input type="text" id="search-bar" placeholder="Cari file kamu🔍" class="w-full p-5 pl-14 bg-white border border-slate-100 rounded-[2rem] outline-none shadow-sm focus:ring-4 ring-blue-500/5 transition-all" oninput="handleSearch(this.value)">
+                <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 w-6 h-6"></i>
             </div>
 
-            <div class="p-6 md:p-12 max-w-7xl mx-auto">
-                <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-16">
-                    <div>
-                        <h2 class="text-4xl font-black text-slate-900 tracking-tight">OCloud Storage</h2>
-                        <p class="text-slate-400 font-medium text-sm mt-2">Next Generation Cloud Management.</p>
-                    </div>
-                    <div class="flex items-center gap-4 w-full md:w-auto">
-                        <input type="file" id="file-input" class="hidden" onchange="startSmartUpload(event)">
-                        <button onclick="document.getElementById('file-input').click()" class="flex-1 md:flex-none bg-blue-600 text-white px-8 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all">
-                            <i data-lucide="upload-cloud" class="w-5 h-5"></i> Upload File
-                        </button>
-                    </div>
-                </header>
-
-                <div class="mb-12 relative">
-                    <i data-lucide="search" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300"></i>
-                    <input type="text" oninput="handleSearch(this.value)" placeholder="Cari file..." class="w-full pl-16 pr-8 py-5 bg-white border border-slate-100 rounded-3xl focus:ring-4 focus:ring-blue-50 outline-none shadow-sm font-medium transition-all">
-                </div>
-
-                <div id="file-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8"></div>
-                <div id="empty-state" class="hide flex flex-col items-center justify-center py-40 text-slate-200">
-                    <i data-lucide="layers" class="w-20 h-20 mb-6"></i>
-                    <p class="font-black uppercase tracking-widest text-[10px]">Cloud Explorer is Empty</p>
-                </div>
+            <div id="file-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="empty-state" class="hide py-32 text-center opacity-50">
+                <i data-lucide="folder-x" class="w-16 h-16 mx-auto mb-4"></i>
+                <p class="font-black uppercase tracking-widest text-sm">Kosong!</p>
             </div>
         </main>
+
+        <div id="fab-upload" onclick="document.getElementById('file-input').click()">
+            <i data-lucide="plus" class="w-8 h-8"></i>
+            <input type="file" id="file-input" class="hide" onchange="startSmartUpload(event)">
+        </div>
     </div>
 
-    <!-- PREVIEW MODAL -->
-    <div id="preview-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xl z-[200] hide flex items-center justify-center p-4" style="display:none">
-        <div class="bg-white w-full max-w-xl rounded-[3rem] p-10 relative shadow-2xl animate-slide-up">
-            <button onclick="closePreview()" class="absolute right-8 top-8 p-2 hover:bg-slate-50 rounded-full transition-all text-slate-300 hover:text-slate-600">
-                <i data-lucide="x" class="w-7 h-7"></i>
-            </button>
-            <div class="flex items-center gap-6 mb-10 text-left">
-                <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 shadow-inner"><i data-lucide="file" id="modal-icon" class="w-10 h-10"></i></div>
-                <div class="overflow-hidden">
-                    <h3 id="modal-name" class="text-2xl font-black text-slate-900 truncate leading-tight">Nama File</h3>
-                    <p id="modal-info" class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2 flex items-center gap-2">
-                        <span id="modal-parts-count">-- PARTS</span> • <span id="modal-date">--</span>
-                    </p>
-                </div>
-            </div>
-            <div id="decoder-section" class="hide mb-10">
-                <div class="bg-blue-50 rounded-[2rem] p-8 border border-blue-100">
-                    <div class="flex items-center gap-4 mb-4">
-                        <i data-lucide="cpu" class="w-8 h-8 text-blue-600 animate-spin"></i>
-                        <p id="decode-status" class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Decoding Chunks...</p>
+    <!-- Modal Preview -->
+    <div id="preview-modal" class="modal-overlay" onclick="if(event.target === this) closePreview()">
+        <div class="modal-content">
+            <div class="p-6 border-b border-slate-50 flex items-center justify-between">
+                <div class="flex items-center gap-4 min-w-0">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                        <i data-lucide="file"></i>
                     </div>
-                    <div class="h-2 bg-blue-100 rounded-full overflow-hidden">
-                        <div id="decode-progress" class="h-full bg-blue-600 w-0 transition-all duration-300"></div>
+                    <div class="min-w-0">
+                        <h3 id="modal-name" class="font-bold text-slate-900 truncate text-base">File Name</h3>
+                        <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+                            <span id="modal-parts-count">0 P</span> • <span id="modal-date">Date</span>
+                        </p>
                     </div>
                 </div>
+                <button onclick="closePreview()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
             </div>
-            <div id="action-buttons" class="flex flex-col gap-3">
-                <button id="btn-download" class="w-full bg-blue-600 text-white py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-blue-50">
-                    <i data-lucide="download" class="w-6 h-6"></i> Download File
-                </button>
-                <div class="grid grid-cols-2 gap-3">
-                    <button id="btn-share" class="bg-blue-50 text-blue-600 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-blue-100 transition-all">
-                        <i data-lucide="share-2" class="w-5 h-5"></i> Salin Link
+            
+            <div class="p-6 overflow-y-auto">
+                <!-- Media Preview Area -->
+                <div id="media-preview-container" class="preview-area hide">
+                    <!-- Image or Video will be injected here -->
+                </div>
+
+                <div id="decoder-section" class="hide">
+                    <p id="decode-status" class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 text-center italic">Processing via Worker...</p>
+                    <div class="progress-bar-container">
+                        <div id="decode-progress" class="progress-bar-fill"></div>
+                    </div>
+                </div>
+
+                <div id="action-buttons" class="space-y-3">
+                    <button id="btn-download" class="w-full bg-blue-600 text-white h-14 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-blue-100 active:scale-95 transition-all">
+                        <i data-lucide="download"></i> Ambil File
                     </button>
-                    <button id="btn-delete" class="bg-red-50 text-red-600 py-5 rounded-[1.5rem] font-bold flex items-center justify-center gap-3 hover:bg-red-100 transition-all">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i> Hapus
-                    </button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="btn-share" class="h-14 bg-slate-50 text-slate-600 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">
+                            <i data-lucide="share"></i> Link
+                        </button>
+                        <button id="btn-delete" class="h-14 bg-red-50 text-red-500 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2">
+                            <i data-lucide="trash"></i> Hapus
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- NOTIFICATION TOAST -->
-    <div id="toast" class="fixed bottom-10 right-10 left-10 md:left-auto bg-slate-900 text-white p-5 rounded-2xl shadow-2xl z-[1000] hide flex items-center gap-4 animate-slide-up md:w-80">
-        <i data-lucide="check-circle" class="text-green-400 w-6 h-6"></i>
-        <p id="toast-msg" class="text-sm font-bold">Berhasil</p>
+    <!-- Upload Progress -->
+    <div id="upload-status" class="hide fixed inset-0 bg-slate-900/90 z-[7000] flex items-center justify-center p-8">
+        <div class="bg-white w-full max-w-sm p-10 rounded-[3rem] text-center">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="cloud-upload" class="w-8 h-8"></i>
+            </div>
+            <p id="up-name" class="text-[10px] text-slate-400 font-bold uppercase truncate mb-6 tracking-widest">Filename</p>
+            <div class="progress-bar-container mb-4"><div id="up-progress" class="progress-bar-fill"></div></div>
+            <p id="up-part" class="text-[10px] font-black text-blue-600 uppercase">Part 1/--</p>
+        </div>
     </div>
 
-    <!-- INI YANG KETINGGALAN TADI BRO: UPLOAD STATUS TRACKER -->
-    <div id="upload-status" class="fixed bottom-10 right-10 left-10 md:left-auto bg-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 z-[300] md:w-96 hide">
-        <div class="flex items-center gap-5 mb-6 text-left">
-            <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white">
-                <i data-lucide="cpu" class="w-8 h-8 animate-spin"></i>
-            </div>
-            <div class="overflow-hidden">
-                <p class="font-bold text-slate-900 truncate" id="up-name">filename.zip</p>
-                <p class="text-[10px] text-blue-600 font-black uppercase tracking-widest mt-1" id="up-part">Part 1/--</p>
-            </div>
-        </div>
-        <div class="h-2 bg-slate-50 rounded-full overflow-hidden">
-            <div id="up-progress" class="h-full bg-blue-600 w-0 transition-all duration-300"></div>
-        </div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-5 rounded-full shadow-2xl z-[8000] hide flex items-center gap-4">
+        <p id="toast-msg" class="text-xs font-bold uppercase tracking-widest"></p>
     </div>
 
     <script>
+        // JS UTAMA - TURBO ULTIMATE EDITION
         const BOT = {
             TOKEN: '8401425763:AAGzfWOOETNcocI7JCj9zQxBhZZ2fVaworI',
             CHAT: '-1003862398542',
             WEB: 'https://api.codetabs.com/v1/proxy/?quest=https://t.me/s/B4C4528FDACF130CF0299F43D4AD83D0',
             PROXY: 'https://api.codetabs.com/v1/proxy/?quest=',
-            CHUNK: 19 * 1024 * 1024
+            CHUNK: 30 * 1024 * 1024
         };
 
         let db = {};
         let filteredKeys = [];
+        let autoSyncTimer;
 
+        // --- WEB WORKER BLOB HANDLER ---
+        const workerCode = `
+            self.onmessage = async function(e) {
+                const { chunks, fileName } = e.data;
+                const blob = new Blob(chunks);
+                const url = URL.createObjectURL(blob);
+                self.postMessage({ url, fileName });
+            };
+        `;
+        const blobWorker = new Worker(URL.createObjectURL(new Blob([workerCode], {type: 'application/javascript'})));
+
+        // --- CORE FUNCTIONS ---
         const handleLogin = () => {
             if(document.getElementById('user-input').value==='admin' && document.getElementById('pass-input').value==='osis26pkt') {
                 sessionStorage.setItem('ocloud_auth', '1');
                 document.getElementById('login-page').classList.add('hide');
                 document.getElementById('main-app').classList.remove('hide');
-                sync();
+                startAutoSync();
             } else document.getElementById('login-error').classList.remove('hide');
         };
 
-        const handleLogout = () => { sessionStorage.clear(); location.reload(); };
-        const toggleSidebar = () => {
-            document.getElementById('sidebar').classList.toggle('sidebar-open');
-            document.getElementById('sidebar-overlay').classList.toggle('hide');
-        };
+        const handleLogout = () => { clearInterval(autoSyncTimer); sessionStorage.clear(); location.reload(); };
 
-        const showToast = (m) => {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = m;
-            t.classList.remove('hide');
-            setTimeout(() => t.classList.add('hide'), 3000);
+        const startAutoSync = () => {
+            sync(); // First load
+            autoSyncTimer = setInterval(sync, 30000); // Auto load tiap 30 detik
         };
 
         async function sync() {
@@ -210,7 +193,7 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const messages = doc.querySelectorAll('.tgme_widget_message');
-                db = {};
+                let newDb = {};
                 messages.forEach(msg => {
                     const textEl = msg.querySelector('.tgme_widget_message_text');
                     const postData = msg.getAttribute('data-post');
@@ -220,41 +203,76 @@
                         const [_, date, part, name, fid] = match;
                         const msgId = postData.split('/').pop();
                         const n = name.trim();
-                        if (!db[n]) db[n] = { name: n, date: date.trim(), parts: [] };
-                        db[n].parts.push({ part: parseInt(part), fid: fid.trim(), msgId: msgId });
+                        if (!newDb[n]) newDb[n] = { name: n, date: date.trim(), parts: [] };
+                        newDb[n].parts.push({ part: parseInt(part), fid: fid.trim(), msgId: msgId });
                     }
                 });
+                db = newDb;
                 filteredKeys = Object.keys(db);
                 render();
-            } catch (e) { console.error(e); }
+                document.getElementById('splash').classList.add('hide');
+            } catch (e) { console.error("Sync Error:", e); }
         }
 
         function render() {
             const grid = document.getElementById('file-grid');
             const empty = document.getElementById('empty-state');
+            const currentSearch = document.getElementById('search-bar').value.toLowerCase();
+            
+            const keys = Object.keys(db).filter(k => k.toLowerCase().includes(currentSearch));
             grid.innerHTML = '';
-            if (filteredKeys.length === 0) { empty.classList.remove('hide'); return; }
+            if (keys.length === 0) { empty.classList.remove('hide'); return; }
             empty.classList.add('hide');
-            filteredKeys.sort((a,b) => b.localeCompare(a)).forEach(name => {
+            
+            keys.sort((a,b) => b.localeCompare(a)).forEach(name => {
                 grid.innerHTML += `
-                    <div onclick="showPreview('${name.replace(/'/g, "\\'")}')" class="glass-card p-8 rounded-[2.5rem] cursor-pointer group animate-slide-up text-left">
-                        <div class="flex justify-between items-start mb-8">
-                            <div class="bg-blue-600 text-white p-4 rounded-3xl group-hover:scale-110 transition-all">
-                                <i data-lucide="file" class="w-6 h-6"></i>
-                            </div>
-                            <span class="text-[10px] font-black text-slate-300 uppercase tracking-tighter">${db[name].parts.length} P</span>
+                    <div onclick="showPreview('${name.replace(/'/g, "\\'")}')" class="glass-card p-6 rounded-[2rem] cursor-pointer group animate-slide-up">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="bg-blue-600 text-white p-3 rounded-2xl group-hover:scale-110 transition-all"><i data-lucide="file" class="w-5 h-5"></i></div>
+                            <span class="text-[9px] font-black text-slate-300 uppercase">${db[name].parts.length} PARTS</span>
                         </div>
                         <h4 class="font-bold text-slate-900 truncate mb-1 text-sm">${name}</h4>
-                        <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">${db[name].date}</p>
+                        <p class="text-[8px] text-slate-400 font-black uppercase tracking-widest">${db[name].date}</p>
                     </div>
                 `;
             });
             lucide.createIcons();
         }
 
-        function handleSearch(v) {
-            filteredKeys = Object.keys(db).filter(k => k.toLowerCase().includes(v.toLowerCase()));
-            render();
+        function handleSearch(v) { render(); }
+
+        // --- MEDIA PREVIEW LOGIC ---
+        function checkAndPreview(name) {
+            const container = document.getElementById('media-preview-container');
+            container.innerHTML = '';
+            container.classList.add('hide');
+            
+            const ext = name.split('.').pop().toLowerCase();
+            const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const vidExts = ['mp4', 'webm', 'ogg'];
+
+            // Preview hanya jalan kalo filenya 1 part (untuk efisiensi bandwidth preview)
+            if (db[name].parts.length === 1) {
+                const fid = db[name].parts[0].fid;
+                const fetchPreview = async () => {
+                    container.classList.remove('hide');
+                    container.innerHTML = `<div class="text-white text-[10px] font-bold animate-pulse uppercase italic">Loading Preview...</div>`;
+                    try {
+                        const apiRes = await fetch(`${BOT.PROXY}https://api.telegram.org/bot${BOT.TOKEN}/getFile?file_id=${fid}`);
+                        const apiData = await apiRes.json();
+                        const url = `${BOT.PROXY}https://api.telegram.org/file/bot${BOT.TOKEN}/${apiData.result.file_path}`;
+                        
+                        if (imgExts.includes(ext)) {
+                            container.innerHTML = `<img src="${url}" alt="Preview" class="rounded-lg shadow-2xl">`;
+                        } else if (vidExts.includes(ext)) {
+                            container.innerHTML = `<video src="${url}" controls class="rounded-lg shadow-2xl"></video>`;
+                        } else {
+                            container.classList.add('hide');
+                        }
+                    } catch (e) { container.classList.add('hide'); }
+                };
+                fetchPreview();
+            }
         }
 
         function showPreview(name) {
@@ -264,11 +282,18 @@
             document.getElementById('modal-parts-count').innerText = `${f.parts.length} PARTS`;
             document.getElementById('decoder-section').classList.add('hide');
             document.getElementById('action-buttons').classList.remove('hide');
+            
+            checkAndPreview(name); // Trigger Media Preview
+
             const modal = document.getElementById('preview-modal');
             modal.style.display = 'flex';
-            modal.classList.remove('hide');
+            
             document.getElementById('btn-download').onclick = () => smartMergeDownload(name);
-            document.getElementById('btn-share').onclick = () => shareLink(name);
+            document.getElementById('btn-share').onclick = () => {
+                const p = f.parts[0];
+                navigator.clipboard.writeText(`OCloud File: ${name}\nID: ${p.fid}`);
+                showToast("Link Referensi Disalin!");
+            };
             document.getElementById('btn-delete').onclick = () => deleteFile(name);
             lucide.createIcons();
         }
@@ -279,28 +304,40 @@
             const buttons = document.getElementById('action-buttons');
             const progress = document.getElementById('decode-progress');
             const status = document.getElementById('decode-status');
+            
             buttons.classList.add('hide');
             decoder.classList.remove('hide');
             f.parts.sort((a,b) => a.part - b.part);
+            
             try {
                 const chunks = [];
                 for(let i=0; i<f.parts.length; i++) {
                     const p = f.parts[i];
-                    status.innerText = `Fetching Part ${p.part}/${f.parts.length}...`;
+                    status.innerText = `Mengambil Bagian ${p.part}/${f.parts.length}...`;
                     const apiRes = await fetch(`${BOT.PROXY}https://api.telegram.org/bot${BOT.TOKEN}/getFile?file_id=${p.fid}`);
                     const apiData = await apiRes.json();
-                    const fileUrl = `https://api.telegram.org/file/bot${BOT.TOKEN}/${apiData.result.file_path}`;
-                    const blobRes = await fetch(`${BOT.PROXY}${fileUrl}`);
+                    const fileUrl = `${BOT.PROXY}https://api.telegram.org/file/bot${BOT.TOKEN}/${apiData.result.file_path}`;
+                    const blobRes = await fetch(fileUrl);
                     chunks.push(await blobRes.arrayBuffer());
                     progress.style.width = ((i+1)/f.parts.length*100)+'%';
                 }
-                status.innerText = "Merging Chunks...";
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob(chunks));
-                a.download = name; a.click();
-                showToast("Download Berhasil!");
-                setTimeout(() => closePreview(), 1500);
-            } catch (e) { alert("Error: " + e.message); buttons.classList.remove('hide'); decoder.classList.add('hide'); }
+
+                status.innerText = "Worker Sedang Menjahit File...";
+                // Kirim ke Worker biar main thread nggak freeze
+                blobWorker.postMessage({ chunks, fileName: name });
+                
+                blobWorker.onmessage = (e) => {
+                    const { url, fileName } = e.data;
+                    const a = document.createElement('a');
+                    a.href = url; a.download = fileName; a.click();
+                    showToast("Selesai!");
+                    setTimeout(closePreview, 1000);
+                };
+            } catch (e) { 
+                alert("Waduh Error: " + e.message); 
+                buttons.classList.remove('hide'); 
+                decoder.classList.add('hide'); 
+            }
         }
 
         async function startSmartUpload(e) {
@@ -317,14 +354,11 @@
                     const c = f.slice(i*BOT.CHUNK, (i+1)*BOT.CHUNK);
                     upP.innerText = `Part ${i+1}/${total}`;
                     upB.style.width = ((i+1)/total*100)+'%';
-                    
                     const fd = new FormData();
                     fd.append('chat_id', BOT.CHAT);
                     fd.append('document', c, f.name);
-                    
                     const res = await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/sendDocument`, {method:'POST', body:fd});
                     const data = await res.json();
-                    
                     if(data.ok) {
                         const meta = `date:${d}::part:${i+1}::name:${f.name}::fid:${data.result.document.file_id}`;
                         await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/sendMessage`, {
@@ -333,19 +367,13 @@
                         });
                     }
                 }
-                showToast("File Berhasil di-Upload!");
-            } catch (err) { console.error(err); alert("Upload Gagal!"); }
+                showToast("Upload Berhasil!");
+            } catch (err) { alert("Gagal!"); }
             ui.classList.add('hide'); sync();
         }
 
-        function shareLink(name) {
-            const p = db[name].parts.sort((a,b)=>a.part-b.part)[0];
-            navigator.clipboard.writeText(`https://t.me/s/B4C4528FDACF130CF0299F43D4AD83D0?q=${encodeURIComponent(p.fid)}`);
-            showToast("Link Referensi Disalin!");
-        }
-
         async function deleteFile(name) {
-            if(!confirm("Hapus file?")) return;
+            if(!confirm("Hapus file ini permanen?")) return;
             for(const p of db[name].parts) {
                 await fetch(`https://api.telegram.org/bot${BOT.TOKEN}/deleteMessage`, {
                     method: 'POST', headers: {'Content-Type':'application/json'},
@@ -355,12 +383,25 @@
             sync(); closePreview();
         }
 
-        function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
+        function closePreview() { 
+            document.getElementById('preview-modal').style.display = 'none'; 
+            document.getElementById('media-preview-container').innerHTML = '';
+        }
+
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.querySelector('p').innerText = m;
+            t.classList.remove('hide');
+            setTimeout(() => t.classList.add('hide'), 3000);
+        }
+
         window.onload = () => {
             if(sessionStorage.getItem('ocloud_auth')) {
                 document.getElementById('login-page').classList.add('hide');
                 document.getElementById('main-app').classList.remove('hide');
-                sync();
+                startAutoSync();
+            } else {
+                document.getElementById('splash').classList.add('hide');
             }
             lucide.createIcons();
         };
